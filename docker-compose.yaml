@@ -1,0 +1,79 @@
+# docker-compose.yaml — Local Development Stack
+# Usage: docker-compose up --build
+
+version: "3.9"
+
+services:
+  # ─── PostgreSQL ─────────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: onboarding_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB       : onboarding_db
+      POSTGRES_USER     : postgres
+      POSTGRES_PASSWORD : postgres123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/01_init.sql
+      - ./database/migrations:/docker-entrypoint-initdb.d/migrations
+    healthcheck:
+      test    : ["CMD-SHELL", "pg_isready -U postgres -d onboarding_db"]
+      interval: 10s
+      timeout : 5s
+      retries : 5
+
+  # ─── Backend ────────────────────────────────────────────────────
+  backend:
+    build:
+      context   : ./backend
+      target    : production
+    container_name: onboarding_backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      NODE_ENV     : development
+      PORT         : 5000
+      DB_HOST      : postgres
+      DB_PORT      : 5432
+      DB_NAME      : onboarding_db
+      DB_USER      : postgres
+      DB_PASSWORD  : postgres123
+      JWT_SECRET   : dev_jwt_secret_change_in_prod_32chars
+      FRONTEND_URL : http://localhost:3000
+    env_file:
+      - ./backend/.env
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./backend/logs:/app/logs
+    healthcheck:
+      test    : ["CMD", "wget", "-qO-", "http://localhost:5000/health"]
+      interval: 30s
+      timeout : 10s
+      retries : 3
+
+  # ─── Frontend ────────────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      target : production
+    container_name: onboarding_frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "3000:80"
+    healthcheck:
+      test    : ["CMD", "wget", "-qO-", "http://localhost:80"]
+      interval: 30s
+      timeout : 10s
+      retries : 3
+
+volumes:
+  postgres_data:
+    driver: local
