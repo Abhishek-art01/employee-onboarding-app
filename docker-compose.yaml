@@ -1,8 +1,6 @@
 # docker-compose.yaml — Local Development Stack
 # Usage: docker-compose up --build
 
-version: "3.9"
-
 services:
   # ─── PostgreSQL ─────────────────────────────────────────────────
   postgres:
@@ -44,9 +42,8 @@ services:
       DB_USER      : postgres
       DB_PASSWORD  : postgres123
       JWT_SECRET   : dev_jwt_secret_change_in_prod_32chars
+      ENCRYPTION_KEY: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
       FRONTEND_URL : http://localhost:3000
-    env_file:
-      - ./backend/.env
     ports:
       - "5000:5000"
     volumes:

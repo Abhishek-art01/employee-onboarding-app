@@ -10,7 +10,7 @@
 const crypto = require('crypto');
 
 const ALGORITHM  = 'aes-256-cbc';
-const KEY_HEX    = process.env.ENCRYPTION_KEY || '0123456789abcdef0123456789abcdef';
+const KEY_HEX    = process.env.ENCRYPTION_KEY || '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
 const KEY        = Buffer.from(KEY_HEX, 'hex');   // must be 32 bytes
 
 if (KEY.length !== 32) {

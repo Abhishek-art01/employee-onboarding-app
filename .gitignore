@@ -1,4 +1,8 @@
 venv/
 .env
 backend/.env
+backend/node_modules/
+backend/logs/
 frontend/.env
+frontend/node_modules/
+frontend/build/

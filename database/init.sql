@@ -132,7 +132,7 @@ CREATE INDEX idx_vlog_type    ON verification_logs(verification_type);
 
 -- ─── AUDIT LOGS ──────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS audit_logs (
-  id              BIGSERIAL PRIMARY KEY,
+  id              BIGSERIAL,
   user_id         INT REFERENCES users(id) ON DELETE SET NULL,
   action          VARCHAR(200) NOT NULL,
   resource        VARCHAR(100),
@@ -143,7 +143,8 @@ CREATE TABLE IF NOT EXISTS audit_logs (
   user_agent      VARCHAR(200),
   request_body    TEXT,
   duration_ms     INT,
-  created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (id, created_at)
 ) PARTITION BY RANGE (created_at);
 
 -- Monthly partitions (create for current + next 3 months in production)
@@ -187,4 +188,3 @@ $$ LANGUAGE plpgsql;
 
 CREATE TRIGGER trigger_users_updated_at
   BEFORE UPDATE ON users FOR EACH ROW EXECUTE FUNCTION update_updated_at();
-
